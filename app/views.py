@@ -5,19 +5,81 @@ Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file creates your application.
 """
 
+import datetime
 from app import app
 from flask import render_template, request, jsonify, send_file
+from models import db, User, Post, Follow
+from flask_login import login_user, logout_user, login_required, current_user
 import os
 
 
 ###
 # Routing for your application.
 ###
+@app.route('/api/v1/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    user = User(
+        username=data['username'],
+        email=data['email'],
+        firstname=data['firstname'],
+        lastname=data['lastname'],
+        location=data['location'],
+        biography=data['biography'],
+        profile_photo=data['profile_photo'],
+        joined_on=datetime.datetime.now()
+    )
+    user.set_password(data['password'])
+    db.session.add(user)
+    db.session.commit()
+    return jsonify({"message": "User registered successfully"}), 201
 
-@app.route('/')
-def index():
-    return jsonify(message="This is the beginning of our API")
+@app.route('/api/v1/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(username=data['username']).first()
+    if user and user.check_password(data['password']):
+        login_user(user)
+        return jsonify({"message": "Login successful"}), 200
+    else:
+        return jsonify({"error": "Invalid username or password"}), 401
 
+@app.route('/api/v1/auth/logout', methods=['POST'])
+@login_required
+def logout():
+    logout_user()
+    return jsonify({"message": "Logged out successfully"}), 200
+
+@app.route('/api/v1/users/<int:user_id>/posts', methods=['POST'])
+@login_required
+def add_post(user_id):
+    if user_id != current_user.id:
+        return jsonify({"error": "Unauthorized"}), 403
+    data = request.get_json()
+    post = Post(caption=data['caption'], photo=data['photo'], user_id=user_id, created_on=datetime.datetime.now())
+    db.session.add(post)
+    db.session.commit()
+    return jsonify({"message": "Post added successfully"}), 201
+
+@app.route('/api/v1/users/<int:user_id>/posts', methods=['GET'])
+def get_posts(user_id):
+    posts = Post.query.filter_by(user_id=user_id).all()
+    return jsonify([{"caption": post.caption, "photo": post.photo, "created_on": post.created_on} for post in posts]), 200
+
+@app.route('/api/users/<int:user_id>/follow', methods=['POST'])
+@login_required
+def follow_user(user_id):
+    if current_user.id == user_id:
+        return jsonify({"error": "Cannot follow yourself"}), 400
+    follow = Follow(follower_id=current_user.id, user_id=user_id)
+    db.session.add(follow)
+    db.session.commit()
+    return jsonify({"message": "Followed successfully"}), 201
+
+@app.route('/api/v1/posts', methods=['GET'])
+def all_posts():
+    posts = Post.query.all()
+    return jsonify([{"user_id": post.user_id, "caption": post.caption, "photo": post.photo, "created_on": post.created_on} for post in posts]), 200
 
 ###
 # The functions below should be applicable to all Flask apps.
