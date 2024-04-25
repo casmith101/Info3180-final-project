@@ -6,7 +6,7 @@
         </div>
 
         <img src="../assets/post.jpg" alt="Post" class="image"/>
-        <p class="text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore sapiente quis dolor culpa officiis maxime nobis labore praesentium et voluptatibus laudantium facere, alias atque quos, officia, neque illo beatae? Laudantium.</p>
+        <p class="text">Sometimes its just about the mountains</p>
         
         <div class="footer">
             <div class="like-container">

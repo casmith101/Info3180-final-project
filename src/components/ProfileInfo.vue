@@ -19,17 +19,17 @@
             <div>
                 <div>
                     <div>
-                        <h3>6</h3>
-                        <p>Posts</p>
+                        <h3 class="posts">6</h3>
+                        <p class="posts">Posts</p>
                     </div>
 
                     <div>
-                        <h3>10</h3>
-                        <p>Followers</p>
+                        <h3 class="followers">10</h3>
+                        <p class="followers">Followers</p>
                     </div>
                 </div>
 
-                <button class="primary-button">New Post</button>
+                <button class="primary-button">Follow</button>
             </div>
         </div>
     </seciton>
@@ -47,6 +47,16 @@
         background-color: white;
         border-radius: 5px;
         padding: 0.5rem;
+    }
+
+    .posts{
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .followers{
+        display: flex;
+        justify-content: flex-end;
     }
 
     .image {
