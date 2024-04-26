@@ -5,34 +5,70 @@ Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file creates your application.
 """
 
+
+
 import datetime
 from app import app, db
+from app.forms import RegistrationForm, LoginForm, PostForm
 from flask import render_template, request, jsonify, send_file
 from app.models import User, Post, Follow
+from werkzeug.utils import secure_filename
+from wtforms.validators import DataRequired
 from flask_login import login_user, logout_user, login_required, current_user
+from sqlalchemy.exc import SQLAlchemyError
+from flask_wtf.csrf import generate_csrf
 import os
 
 
 ###
 # Routing for your application.
 ###
-@app.route('/api/v1/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    user = User(
-        username=data['username'],
-        email=data['email'],
-        firstname=data['firstname'],
-        lastname=data['lastname'],
-        location=data['location'],
-        biography=data['biography'],
-        profile_photo=data['profile_photo'],
-        joined_on=datetime.datetime.now()
-    )
-    user.set_password(data['password'])
-    db.session.add(user)
-    db.session.commit()
-    return jsonify({"message": "User registered successfully"}), 201
+
+@app.route('/api/v1/register', methods = ['POST'])
+def add_user():
+    form = RegistrationForm()
+    
+    if form.validate_on_submit():
+        username = form.username.data 
+        email = form.email.data 
+        firstname = form.firstname.data 
+        lastname = form.lastname.data 
+        location = form.location.data 
+        biography = form.biography.data 
+        profile_photo = request.files['profile_photo']
+        filename = secure_filename(profile_photo.filename)
+        profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+        
+        new_user = User(
+            username = username,
+            email = email,
+            firstname = firstname,
+            lastname = lastname, 
+            location = location, 
+            biography = biography,
+            profile_photo = filename
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        response = {
+            'message': 'user Successfully added',
+            'username': new_user.username,
+            'email': new_user.email,
+            'firstname': new_user.firstname,
+            'lastname': new_user.lastname, 
+            'location': new_user.location, 
+            'biography': new_user.biography,
+            'profile_photo': filename
+        }
+        
+        return jsonify(response), 200
+    else:
+        errors = form.errors
+        return jsonify({'errors': errors}), 400
+    
+
 
 @app.route('/api/v1/auth/login', methods=['POST'])
 def login():

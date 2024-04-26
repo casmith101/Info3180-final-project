@@ -17,11 +17,22 @@ class User(db.Model, UserMixin):
     profile_photo = db.Column(db.String(100))
     joined_on = db.Column(db.DateTime)
 
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+    def __init__(self, username, password, firstname, lastname, email, location, biography, profile_photo):
+        self.username = username
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+        self.firstname = firstname
+        self.lastname = lastname
+        self.email = email
+        self.location = location
+        self.biography = biography
+        self.profile_photo = profile_photo
 
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+    def __repr__(self):
+        return f"User(id={self.id}, username='{self.username}', password_hash='{self.password_hash}', firstname='{self.firstname}', lastname='{self.lastname}', email='{self.email}', location='{self.location}', biography='{self.biography}', profile_photo={self.profile_photo}, joined_on={self.joined_on})"
+
+
+    def __repr__(self):
+        return f"User(id={self.id}, username='{self.username}', password_hash='{self.password_hash}', firstname='{self.firstname}', lastname='{self.lastname}', email='{self.email}', location='{self.location}', biography='{self.biography}', profile_photo={self.profile_photo}, joined_on={self.joined_on})"
     
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
