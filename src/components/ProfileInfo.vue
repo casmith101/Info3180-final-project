@@ -58,7 +58,7 @@
         display: flex;
         justify-content: flex-end;
     }
-
+    
     .image {
         width: 100px;
     }
