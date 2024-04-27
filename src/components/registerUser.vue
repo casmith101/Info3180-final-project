@@ -1,6 +1,5 @@
 <template>
     <div class="registrationForm"> 
-        <h2>Register</h2>
         <form id="userForm" @submit.prevent="registerUser">
 
             <div class="form-group">
@@ -41,12 +40,12 @@
 
             <div class="input-group textarea">
                 <label for="bio" class="form-label">Bio</label>
-                <textarea id="bio" name="bio" v-model="user.biography" class="form-control"></textarea>
+                <textarea id="bio" name="biography" v-model="user.biography" class="form-control"></textarea>
             </div>
 
             <div class="form-photo">
                 <label for="photo" class="form-label">Profile Photo</label>
-                <input type="file" ref="profile_photo" id="photo" name="pic" class="form-control">
+                <input type="file" ref="profile_photo" id="photo" name="profile_photo" class="form-control">
             </div>
 
         <button type="submit">Register</button>
@@ -74,8 +73,9 @@ function getCsrfToken() {
     fetch('/api/v1/csrf-token') 
     .then((response) => response.json()) 
     .then((data) => { 
-        console.log(data); 
+        console.log(data); // Log the CSRF token data
         csrf_token.value = data.csrf_token; 
+        console.log(csrf_token.value); // Log the CSRF token value
     }) 
 }
 
@@ -91,6 +91,7 @@ const registerUser = () => {
         }
     })
     .then(function (response) { 
+        
         return response.json(); 
     }) 
     .then(function (data) { 

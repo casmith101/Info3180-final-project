@@ -24,98 +24,104 @@ import os
 # Routing for your application.
 ###
 
-@app.route('/api/v1/register', methods = ['POST'])
+@app.route('/api/v1/register', methods=['POST'])
 def add_user():
     form = RegistrationForm()
-    
+
     if form.validate_on_submit():
-        username = form.username.data 
-        email = form.email.data 
-        firstname = form.firstname.data 
-        lastname = form.lastname.data 
-        location = form.location.data 
-        biography = form.biography.data 
+        username = form.username.data
+        password = form.password.data  
+        email = form.email.data
+        firstname = form.firstname.data
+        lastname = form.lastname.data
+        location = form.location.data
+        biography = form.biography.data
         profile_photo = request.files['profile_photo']
         filename = secure_filename(profile_photo.filename)
-        profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
-        
+        profile_photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
         new_user = User(
-            username = username,
-            email = email,
-            firstname = firstname,
-            lastname = lastname, 
-            location = location, 
-            biography = biography,
-            profile_photo = filename
+            username=username,
+            password=password,  
+            firstname=firstname,
+            lastname=lastname,
+            email=email,
+            location=location,
+            biography=biography,
+            profile_photo=filename
         )
-        
+
         db.session.add(new_user)
         db.session.commit()
-        
+
         response = {
             'message': 'user Successfully added',
             'username': new_user.username,
             'email': new_user.email,
             'firstname': new_user.firstname,
-            'lastname': new_user.lastname, 
-            'location': new_user.location, 
+            'lastname': new_user.lastname,
+            'location': new_user.location,
             'biography': new_user.biography,
             'profile_photo': filename
         }
-        
+
         return jsonify(response), 200
     else:
         errors = form.errors
         return jsonify({'errors': errors}), 400
+
     
+@app.route('/api/v1/csrf-token', methods=['GET']) 
+def get_csrf(): 
+    return jsonify({'csrf_token': generate_csrf()})  
 
 
-@app.route('/api/v1/auth/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    user = User.query.filter_by(username=data['username']).first()
-    if user and user.check_password(data['password']):
-        login_user(user)
-        return jsonify({"message": "Login successful"}), 200
-    else:
-        return jsonify({"error": "Invalid username or password"}), 401
+# @app.route('/api/v1/auth/login', methods=['POST'])
+# def login():
+#     data = request.get_json()
+#     user = User.query.filter_by(username=data['username']).first()
+#     if user and user.check_password(data['password']):
+#         login_user(user)
+#         return jsonify({"message": "Login successful"}), 200
+#     else:
+#         return jsonify({"error": "Invalid username or password"}), 401
 
-@app.route('/api/v1/auth/logout', methods=['POST'])
-@login_required
-def logout():
-    logout_user()
-    return jsonify({"message": "Logged out successfully"}), 200
+# @app.route('/api/v1/auth/logout', methods=['POST'])
+# @login_required
+# def logout():
+#     logout_user()
+#     return jsonify({"message": "Logged out successfully"}), 200
 
-@app.route('/api/v1/users/<int:user_id>/posts', methods=['POST'])
-@login_required
-def add_post(user_id):
-    if user_id != current_user.id:
-        return jsonify({"error": "Unauthorized"}), 403
-    data = request.get_json()
-    post = Post(caption=data['caption'], photo=data['photo'], user_id=user_id, created_on=datetime.datetime.now())
-    db.session.add(post)
-    db.session.commit()
-    return jsonify({"message": "Post added successfully"}), 201
+# @app.route('/api/v1/users/<int:user_id>/posts', methods=['POST'])
+# @login_required
+# def add_post(user_id):
+#     if user_id != current_user.id:
+#         return jsonify({"error": "Unauthorized"}), 403
+#     data = request.get_json()
+#     post = Post(caption=data['caption'], photo=data['photo'], user_id=user_id, created_on=datetime.datetime.now())
+#     db.session.add(post)
+#     db.session.commit()
+#     return jsonify({"message": "Post added successfully"}), 201
 
-@app.route('/api/v1/users/<int:user_id>/posts', methods=['GET'])
-def get_posts(user_id):
-    posts = Post.query.filter_by(user_id=user_id).all()
-    return jsonify([{"caption": post.caption, "photo": post.photo, "created_on": post.created_on} for post in posts]), 200
+# @app.route('/api/v1/users/<int:user_id>/posts', methods=['GET'])
+# def get_posts(user_id):
+#     posts = Post.query.filter_by(user_id=user_id).all()
+#     return jsonify([{"caption": post.caption, "photo": post.photo, "created_on": post.created_on} for post in posts]), 200
 
-@app.route('/api/users/<int:user_id>/follow', methods=['POST'])
-@login_required
-def follow_user(user_id):
-    if current_user.id == user_id:
-        return jsonify({"error": "Cannot follow yourself"}), 400
-    follow = Follow(follower_id=current_user.id, user_id=user_id)
-    db.session.add(follow)
-    db.session.commit()
-    return jsonify({"message": "Followed successfully"}), 201
+# @app.route('/api/users/<int:user_id>/follow', methods=['POST'])
+# @login_required
+# def follow_user(user_id):
+#     if current_user.id == user_id:
+#         return jsonify({"error": "Cannot follow yourself"}), 400
+#     follow = Follow(follower_id=current_user.id, user_id=user_id)
+#     db.session.add(follow)
+#     db.session.commit()
+#     return jsonify({"message": "Followed successfully"}), 201
 
-@app.route('/api/v1/posts', methods=['GET'])
-def all_posts():
-    posts = Post.query.all()
-    return jsonify([{"user_id": post.user_id, "caption": post.caption, "photo": post.photo, "created_on": post.created_on} for post in posts]), 200
+# @app.route('/api/v1/posts', methods=['GET'])
+# def all_posts():
+#     posts = Post.query.all()
+#     return jsonify([{"user_id": post.user_id, "caption": post.caption, "photo": post.photo, "created_on": post.created_on} for post in posts]), 200
 
 ###
 # The functions below should be applicable to all Flask apps.
